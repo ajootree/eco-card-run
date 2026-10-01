@@ -269,6 +269,18 @@
         pointer-events: none;
       }
 
+      .runner-card.card-back.card-next {
+        filter: saturate(0.88) blur(0.35px);
+      }
+
+      .runner-card.card-back.card-far {
+        filter: saturate(0.66) blur(1.8px);
+      }
+
+      .runner-card.card-back.card-far strong {
+        visibility: hidden;
+      }
+
       .runner-card.card-back .icon {
         opacity: 0.72;
       }
@@ -371,11 +383,12 @@
       }
 
       .countdown-number.go {
-        min-width: clamp(150px, 28vw, 240px);
+        min-width: min(78vw, 360px);
         border-radius: 999px;
-        padding: 0 28px;
+        padding: 0 clamp(18px, 3vw, 32px);
         aspect-ratio: auto;
-        font-size: clamp(3.2rem, 9vw, 6.5rem);
+        font-size: clamp(2.2rem, 7vw, 4.8rem);
+        white-space: nowrap;
         color: #063719;
         background: linear-gradient(180deg, #d8ffc1, #84ef6f);
         box-shadow: 0 10px 0 #31a943, 0 22px 44px rgba(24, 37, 30, 0.32);
@@ -1164,7 +1177,7 @@
 
       function cardBackMarkup(card, index) {
         const element = document.createElement("div");
-        element.className = "runner-card card-back";
+        element.className = `runner-card card-back ${index === 1 ? "card-next" : "card-far"}`;
         element.setAttribute("aria-hidden", "true");
         element.innerHTML = `
           <span class="icon" aria-hidden="true"><img class="card-art" src="${clipArtSrc(card)}" alt="" /></span>
