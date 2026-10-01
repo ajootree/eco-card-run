@@ -1,0 +1,1678 @@
+<!doctype html>
+<html lang="ko"><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>에코 카드런</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap");
+
+      :root {
+        color-scheme: light;
+        --forest: #31a66a;
+        --forest-dark: #173f35;
+        --water: #4d91e8;
+        --sky: #bce9f4;
+        --sun: #ffd66b;
+        --coral: #ff8d86;
+        --paper: #fffdf6;
+        --ink: #203438;
+        --muted: #587076;
+        --line: rgba(32, 52, 56, 0.14);
+        --wrong: #ee5e6b;
+        --right: #27a467;
+        --shadow: 0 18px 44px rgba(32, 81, 76, 0.18);
+        --radius: 22px;
+        --font-main: "Gowun Dodum", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+        --font-display: "Jua", "Gowun Dodum", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+        margin: 0;
+      }
+
+      body {
+        background:
+          linear-gradient(rgba(255, 255, 255, 0.26) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.26) 1px, transparent 1px),
+          linear-gradient(180deg, #d6f4f7 0%, #eefadf 100%);
+        background-size: 32px 32px, 32px 32px, auto;
+        color: var(--ink);
+        font-family: var(--font-main);
+        overflow-x: hidden;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(180deg, transparent 0 76%, rgba(77, 166, 112, 0.09) 76% 100%);
+      }
+
+      button {
+        border: 0;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      button:focus-visible {
+        outline: 4px solid rgba(35, 103, 201, 0.38);
+        outline-offset: 3px;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      .app {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        min-height: 100dvh;
+        padding: 18px;
+      }
+
+      .game-shell {
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        gap: 12px;
+        width: min(1080px, 100%);
+        min-height: calc(100dvh - 36px);
+        margin: 0 auto;
+      }
+
+      .topbar {
+        display: grid;
+        grid-template-columns: minmax(180px, 1fr) auto auto;
+        gap: 12px;
+        align-items: center;
+      }
+
+      h1 {
+        margin: 0;
+        color: #214e42;
+        font-family: var(--font-display);
+        font-size: clamp(2rem, 4vw, 3.15rem);
+        line-height: 1.05;
+        letter-spacing: 0;
+        text-shadow: 0 3px 0 rgba(255, 255, 255, 0.86);
+      }
+
+      .stats {
+        display: flex;
+        gap: 6px;
+        justify-content: flex-end;
+      }
+
+      .stat {
+        display: grid;
+        gap: 1px;
+        min-width: 72px;
+        padding: 8px 12px;
+        border: 2px solid rgba(255, 255, 255, 0.9);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.72);
+        box-shadow: 0 6px 18px rgba(39, 89, 82, 0.11);
+        text-align: center;
+      }
+
+      .stat span {
+        color: var(--muted);
+        font-size: 0.76rem;
+        font-weight: 800;
+      }
+
+      .stat strong {
+        font-family: var(--font-display);
+        font-size: 1.25rem;
+        font-weight: 400;
+        line-height: 1;
+      }
+
+      .game-shell:not(.is-playing) .stats,
+      .game-shell:not(.is-playing) .controls,
+      .game-shell:not(.is-playing) .life-hud {
+        display: none;
+      }
+
+      .life-hud {
+        position: absolute;
+        z-index: 9;
+        left: 18px;
+        top: 18px;
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 6px;
+      }
+
+      .utility-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        justify-content: flex-end;
+      }
+
+      .home-button,
+      .sound-button {
+        min-height: 42px;
+        padding: 0 14px;
+        border: 2px solid rgba(255, 255, 255, 0.92);
+        border-radius: 999px;
+        color: #29484c;
+        font-weight: 800;
+        transition: transform 160ms ease, box-shadow 160ms ease;
+      }
+
+      .home-button {
+        background: #fff3c7;
+        box-shadow: 0 4px 0 #e7bb5b;
+      }
+
+      .sound-button {
+        background: #d9f2ff;
+        color: #26516b;
+        box-shadow: 0 4px 0 #95cce5;
+      }
+
+      .sound-button[aria-pressed="false"] {
+        background: #edf0f0;
+        color: #4f4f4f;
+        box-shadow: 0 4px 0 #bdc6c5;
+      }
+
+      .home-button:active,
+      .sound-button:active {
+        transform: translateY(2px);
+        box-shadow: 0 2px 0 rgba(40, 76, 73, 0.24);
+      }
+
+      .stage-wrap {
+        display: block;
+        min-height: 0;
+      }
+
+      .stage {
+        position: relative;
+        min-height: clamp(440px, calc(100dvh - 210px), 552px);
+        overflow: hidden;
+        border: 4px solid rgba(255, 255, 255, 0.94);
+        border-radius: 28px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.42), transparent 28%),
+          linear-gradient(180deg, #a9e4ef 0 38%, #8fd987 39% 100%);
+        box-shadow: var(--shadow);
+      }
+
+      .stage::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        bottom: -120px;
+        width: min(70%, 620px);
+        height: 112%;
+        transform: translateX(-50%);
+        clip-path: polygon(42% 0, 58% 0, 100% 100%, 0 100%);
+        background: linear-gradient(90deg, #79bca3, #b8d5ac 48%, #c8deb6 52%, #79bca3);
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.28);
+      }
+
+      .runner-card {
+        position: absolute;
+        z-index: 5;
+        left: 50%;
+        top: 48%;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 13px;
+        align-items: center;
+        min-width: min(74%, 340px);
+        max-width: min(74%, 340px);
+        padding: 15px 18px;
+        border: 3px solid #31555a;
+        border-radius: 26px;
+        background: #fffdf7;
+        box-shadow: 0 7px 0 #547a72, 0 18px 34px rgba(25, 65, 62, 0.22);
+        transform: translate(-50%, -50%);
+      }
+
+      .runner-card.correct-burst {
+        animation: correct-burst 420ms ease both;
+      }
+
+      .runner-card.correct-burst::after {
+        content: "";
+        position: absolute;
+        inset: -22px;
+        pointer-events: none;
+        background:
+          radial-gradient(circle, #ffffff 0 0.18rem, transparent 0.2rem) 14% 18% / 42px 42px,
+          radial-gradient(circle, #fff176 0 0.22rem, transparent 0.24rem) 84% 24% / 46px 46px,
+          radial-gradient(circle, #8eff5f 0 0.2rem, transparent 0.22rem) 78% 82% / 38px 38px,
+          radial-gradient(circle, #ffffff 0 0.16rem, transparent 0.18rem) 24% 74% / 34px 34px;
+        opacity: 0;
+        animation: sparkle-pop 420ms ease both;
+      }
+
+      .runner-card.wrong-shake {
+        animation: wrong-shake 420ms ease both;
+      }
+
+      .runner-card.card-back {
+        background: #f5fbef;
+        filter: saturate(0.82);
+        pointer-events: none;
+      }
+
+      .runner-card.card-back .icon {
+        opacity: 0.72;
+      }
+
+      .runner-card.card-back strong {
+        opacity: 0.72;
+      }
+
+      .runner-card .icon {
+        display: grid;
+        place-items: center;
+        width: 58px;
+        height: 58px;
+        border-radius: 19px;
+        border: 2px solid #5ca879;
+        background: #ddf6dc;
+        font-size: 2rem;
+        overflow: hidden;
+      }
+
+      .runner-card .icon img {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .runner-card strong {
+        font-family: var(--font-display);
+        font-size: clamp(1.4rem, 2.8vw, 2.05rem);
+        font-weight: 400;
+        line-height: 1.05;
+        text-align: left;
+        word-break: keep-all;
+      }
+
+      .stage-toast {
+        position: absolute;
+        left: 50%;
+        top: 22px;
+        z-index: 7;
+        min-width: min(68%, 300px);
+        padding: 10px 16px;
+        border: 2px solid rgba(49, 85, 90, 0.3);
+        border-radius: 999px;
+        background: #fffdf7;
+        box-shadow: 0 8px 24px rgba(24, 69, 63, 0.18);
+        color: var(--ink);
+        font-family: var(--font-display);
+        font-size: 1.35rem;
+        font-weight: 400;
+        text-align: center;
+        opacity: 0;
+        transform: translate(-50%, -12px) scale(0.94);
+        pointer-events: none;
+      }
+
+      .stage-toast.show {
+        animation: toast-pop 760ms ease both;
+      }
+
+      .stage-toast.right {
+        background: #daf7d7;
+        color: #063719;
+      }
+
+      .stage-toast.wrong {
+        background: #ffe3df;
+        color: #671117;
+      }
+
+      .stage-toast.level {
+        background: #fff1bd;
+        color: #5a320d;
+      }
+
+      .countdown {
+        position: absolute;
+        z-index: 10;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: rgba(17, 50, 32, 0.14);
+        pointer-events: none;
+      }
+
+      .countdown-number {
+        display: grid;
+        place-items: center;
+        min-width: clamp(120px, 22vw, 190px);
+        aspect-ratio: 1;
+        border: 5px solid #fffdf7;
+        border-radius: 50%;
+        background: linear-gradient(180deg, #fff3bc, #ffd06e);
+        color: #4b2508;
+        font-family: var(--font-display);
+        font-size: clamp(4rem, 12vw, 8rem);
+        line-height: 1;
+        box-shadow: 0 10px 0 #b96f17, 0 22px 44px rgba(24, 37, 30, 0.32);
+        animation: countdown-pop 850ms ease both;
+      }
+
+      .countdown-number.go {
+        min-width: clamp(150px, 28vw, 240px);
+        border-radius: 999px;
+        padding: 0 28px;
+        aspect-ratio: auto;
+        font-size: clamp(3.2rem, 9vw, 6.5rem);
+        color: #063719;
+        background: linear-gradient(180deg, #d8ffc1, #84ef6f);
+        box-shadow: 0 10px 0 #31a943, 0 22px 44px rgba(24, 37, 30, 0.32);
+      }
+
+      .stage.right-pulse {
+        animation: stage-right-pulse 430ms ease both;
+      }
+
+      .stage.wrong-pulse {
+        animation: stage-wrong-pulse 520ms ease both;
+      }
+
+      .overlay {
+        position: absolute;
+        z-index: 8;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding: 22px;
+        background: rgba(40, 91, 82, 0.15);
+        backdrop-filter: blur(4px);
+      }
+
+      .start-panel {
+        width: min(650px, 100%);
+        padding: 28px;
+        border-radius: 28px;
+        border: 3px solid rgba(255, 255, 255, 0.92);
+        background: rgba(255, 253, 247, 0.96);
+        box-shadow: 0 18px 48px rgba(31, 73, 67, 0.24);
+      }
+
+      .start-panel h2 {
+        margin: 0 0 7px;
+        color: #214e42;
+        font-family: var(--font-display);
+        font-size: clamp(1.75rem, 4vw, 2.5rem);
+        font-weight: 400;
+        line-height: 1.1;
+      }
+
+      .start-panel p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.5;
+        word-break: keep-all;
+      }
+
+      .start-panel .primary {
+        display: block;
+        min-width: 168px;
+        margin: 0 auto;
+      }
+
+      .tutorial-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        margin: 20px 0 14px;
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .tutorial-card {
+        min-height: 104px;
+        padding: 16px 18px 16px 14px;
+      }
+
+      .tutorial-card + .tutorial-card {
+        border-left: 1px solid var(--line);
+        padding-left: 20px;
+      }
+
+      .tutorial-card strong {
+        display: block;
+        margin-bottom: 5px;
+        color: #207c50;
+        font-family: var(--font-display);
+        font-size: 1.35rem;
+        font-weight: 400;
+      }
+
+      .tutorial-card p {
+        margin: 0;
+        color: #53696d;
+        font-size: 0.95rem;
+      }
+
+      .tutorial-card.nonlive strong {
+        color: #3d78bd;
+      }
+
+      .tutorial-tip {
+        margin: 0 0 18px;
+        color: #6d6260;
+        font-size: 0.9rem;
+        font-weight: 800;
+        text-align: center;
+      }
+
+      .mode-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .mode-buttons .primary {
+        width: 100%;
+        min-height: 70px;
+        margin: 0;
+      }
+
+      .mode-buttons small {
+        display: block;
+        margin-top: 2px;
+        font-family: var(--font-main);
+        font-size: 0.82rem;
+        font-weight: 800;
+        opacity: 0.74;
+      }
+
+      .result-panel {
+        text-align: center;
+      }
+
+      .result-panel h2 {
+        margin-bottom: 16px;
+        color: #214e42;
+        font-family: var(--font-display);
+        font-size: clamp(1.8rem, 5vw, 2.8rem);
+        font-weight: 400;
+      }
+
+      .result-score {
+        display: grid;
+        place-items: center;
+        min-height: 132px;
+        width: min(420px, 100%);
+        margin: 0 auto 18px;
+        padding: 18px 22px;
+        border: 2px solid rgba(67, 117, 106, 0.2);
+        border-radius: 22px;
+        background: #eff9e8;
+        box-shadow:
+          inset 0 0 0 4px rgba(255, 255, 255, 0.58),
+          0 7px 0 #acd39a;
+      }
+
+      .result-score strong {
+        color: #17361f;
+        font-family: var(--font-display);
+        font-size: clamp(1.45rem, 4.8vw, 2.55rem);
+        font-weight: 400;
+        line-height: 1.05;
+      }
+
+      .result-score span {
+        display: block;
+        margin-top: 10px;
+        color: #6b512b;
+        font-weight: 1000;
+      }
+
+      .result-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .result-actions .primary,
+      .result-actions .secondary {
+        width: 100%;
+        min-height: 62px;
+        margin: 0;
+      }
+
+      .primary.time-attack {
+        background: #ffd5cf;
+        color: #6c3534;
+        box-shadow: 0 5px 0 #e69a94;
+      }
+
+      .primary,
+      .secondary,
+      .choice-button {
+        min-height: 52px;
+        border-radius: 20px;
+        padding: 0 18px;
+        font-family: var(--font-display);
+        font-weight: 400;
+        transition: transform 160ms ease, filter 160ms ease, box-shadow 160ms ease;
+      }
+
+      .primary {
+        background: #bcecbf;
+        color: #174c32;
+        box-shadow: 0 5px 0 #76be83;
+      }
+
+      .secondary {
+        border: 2px solid #cad9d7;
+        background: #f4f8f7;
+        color: var(--forest-dark);
+        box-shadow: 0 5px 0 #cad9d7;
+      }
+
+      .primary:hover,
+      .secondary:hover,
+      .choice-button:hover {
+        filter: brightness(1.025) saturate(1.04);
+        transform: translateY(-1px);
+      }
+
+      .hearts {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        color: #ff2549;
+        letter-spacing: 0;
+        white-space: nowrap;
+        font-family: var(--font-display);
+        font-size: clamp(2.25rem, 5vw, 3.5rem);
+        line-height: 1;
+        text-shadow:
+          0 2px 0 #8d1325,
+          0 5px 12px rgba(99, 0, 18, 0.34);
+      }
+
+      .hearts .empty {
+        opacity: 1;
+        color: #b6b2ad;
+        filter: grayscale(0.2);
+        text-shadow:
+          0 2px 0 #716d68,
+          0 4px 9px rgba(40, 35, 30, 0.18);
+      }
+
+      .controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+
+      .choice-button {
+        display: grid;
+        gap: 3px;
+        align-content: center;
+        color: #18351e;
+        text-align: center;
+        min-height: 76px;
+        border: 3px solid rgba(255, 255, 255, 0.92);
+        font-size: clamp(1.25rem, 2.2vw, 1.55rem);
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.78);
+      }
+
+      .choice-button small {
+        font-family: var(--font-main);
+        font-size: 0.82rem;
+        font-weight: 800;
+        opacity: 0.74;
+      }
+
+      .choice-live {
+        background: #c8efc8;
+        color: #174021;
+        box-shadow: 0 7px 0 #79bd83, 0 14px 28px rgba(38, 102, 67, 0.17);
+      }
+
+      .choice-nonlive {
+        background: #cce9f8;
+        color: #18355a;
+        box-shadow: 0 7px 0 #82b9d9, 0 14px 28px rgba(44, 94, 130, 0.16);
+      }
+
+      .choice-button:active {
+        transform: translateY(4px);
+        box-shadow: 0 3px 0 rgba(70, 117, 105, 0.4);
+      }
+
+      @keyframes correct-burst {
+        0% {
+          transform: translate(-50%, -50%) scale(1);
+          box-shadow: 0 9px 0 #8f5a2d, 0 20px 34px rgba(24, 37, 30, 0.24);
+        }
+        36% {
+          transform: translate(-50%, -50%) scale(1.12);
+          box-shadow: 0 9px 0 #208738, 0 0 0 12px rgba(142, 255, 95, 0.36), 0 24px 42px rgba(24, 37, 30, 0.28);
+        }
+        100% {
+          transform: translate(-50%, -50%) scale(0.96);
+          opacity: 0;
+        }
+      }
+
+      @keyframes wrong-shake {
+        0%,
+        100% {
+          transform: translate(-50%, -50%);
+        }
+        16% {
+          transform: translate(calc(-50% - 18px), -50%) rotate(-2deg);
+        }
+        32% {
+          transform: translate(calc(-50% + 18px), -50%) rotate(2deg);
+        }
+        48% {
+          transform: translate(calc(-50% - 14px), -50%) rotate(-2deg);
+          box-shadow: 0 9px 0 #8f2d2d, 0 0 0 10px rgba(223, 41, 53, 0.28), 0 20px 34px rgba(24, 37, 30, 0.24);
+        }
+        68% {
+          transform: translate(calc(-50% + 10px), -50%) rotate(1deg);
+        }
+      }
+
+      @keyframes sparkle-pop {
+        0% {
+          opacity: 0;
+          transform: scale(0.7) rotate(-8deg);
+        }
+        36% {
+          opacity: 1;
+          transform: scale(1.08) rotate(3deg);
+        }
+        100% {
+          opacity: 0;
+          transform: scale(1.22) rotate(10deg);
+        }
+      }
+
+      @keyframes stage-right-pulse {
+        0%,
+        100% {
+          filter: none;
+        }
+        42% {
+          filter: brightness(1.08) saturate(1.16);
+        }
+      }
+
+      @keyframes stage-wrong-pulse {
+        0%,
+        100% {
+          filter: none;
+        }
+        26%,
+        56% {
+          filter: sepia(0.22) saturate(1.4) hue-rotate(-22deg);
+        }
+      }
+
+      @keyframes toast-pop {
+        0% {
+          opacity: 0;
+          transform: translate(-50%, -10px) scale(0.92);
+        }
+        18%,
+        82% {
+          opacity: 1;
+          transform: translate(-50%, 0) scale(1);
+        }
+        100% {
+          opacity: 0;
+          transform: translate(-50%, -10px) scale(0.96);
+        }
+      }
+
+      @keyframes countdown-pop {
+        0% {
+          opacity: 0;
+          transform: scale(0.6) rotate(-8deg);
+        }
+        20% {
+          opacity: 1;
+          transform: scale(1.08) rotate(2deg);
+        }
+        78% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        100% {
+          opacity: 0;
+          transform: scale(1.18) rotate(5deg);
+        }
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      @media (max-width: 940px) {
+        .app {
+          padding: 14px;
+        }
+
+        .game-shell {
+          min-height: calc(100dvh - 28px);
+        }
+
+        .topbar {
+          grid-template-columns: minmax(170px, 1fr) auto;
+        }
+
+        .utility-buttons {
+          justify-content: flex-end;
+        }
+
+        .stats {
+          grid-column: 1 / -1;
+          justify-content: stretch;
+        }
+
+        .stat {
+          flex: 1;
+          min-width: 90px;
+        }
+
+        .life-hud {
+          left: 14px;
+          top: 14px;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .app {
+          padding: 10px;
+        }
+
+        .game-shell {
+          gap: 10px;
+          min-height: calc(100dvh - 20px);
+        }
+
+        .stage {
+          min-height: 460px;
+          border-width: 3px;
+          border-radius: 22px;
+        }
+
+        .runner-card {
+          min-width: min(78%, 300px);
+          max-width: min(78%, 300px);
+          padding: 12px 14px;
+        }
+
+        .runner-card .icon {
+          width: 48px;
+          height: 48px;
+          font-size: 1.65rem;
+        }
+
+        .tutorial-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .tutorial-card {
+          min-height: 0;
+          padding: 13px 4px;
+        }
+
+        .tutorial-card + .tutorial-card {
+          border-top: 1px solid var(--line);
+          border-left: 0;
+          padding-left: 4px;
+        }
+
+        .tutorial-tip {
+          font-size: 0.84rem;
+        }
+
+        .mode-buttons {
+          grid-template-columns: 1fr;
+        }
+
+        .result-actions {
+          grid-template-columns: 1fr;
+        }
+
+        .start-panel {
+          padding: 22px 18px;
+        }
+
+        .choice-button {
+          min-height: 68px;
+          padding: 0 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <section class="game-shell" aria-labelledby="game-title">
+        <header class="topbar">
+          <div>
+            <h1 id="game-title">에코 카드런</h1>
+          </div>
+          <div class="utility-buttons" aria-label="게임 도구">
+            <button class="home-button" id="home-button" type="button" data-action="home" hidden="">처음 화면</button>
+            <button class="sound-button" id="sound-button" type="button" data-action="sound" aria-pressed="true">소리 켬</button>
+          </div>
+          <div class="stats" aria-label="게임 상태">
+            <div class="stat" id="time-stat" hidden=""><span>시간</span><strong id="time-left">60</strong></div>
+            <div class="stat"><span>레벨</span><strong id="level">1</strong></div>
+            <div class="stat"><span>점수</span><strong id="score">0</strong></div>
+            <div class="stat"><span>연속</span><strong id="combo">0</strong></div>
+            <div class="stat" hidden=""><span>최고</span><strong id="best">0</strong></div>
+          </div>
+        </header>
+
+        <div class="stage-wrap">
+          <section class="stage" id="stage" aria-label="분류 러너 게임판">
+            <div class="life-hud" aria-label="남은 생명">
+              <span class="sr-only">생명</span>
+              <strong id="lives" class="hearts" aria-label="하트 5개"><span>♥</span><span>♥</span><span>♥</span><span>♥</span><span>♥</span></strong>
+            </div>
+            <div class="stage-toast" id="stage-toast" aria-live="polite"></div>
+            <div class="countdown" id="countdown" hidden="" aria-live="polite"></div>
+            <div id="card-layer" aria-live="off"></div>
+            <div class="overlay" id="overlay">
+          <div class="start-panel">
+            <h2>카드를 보고 척척 분류해요!</h2>
+            <p>카드 속 대상이 생물요소인지 비생물요소인지 골라 주세요.</p>
+            <div class="tutorial-grid" aria-label="분류 방법">
+              <div class="tutorial-card">
+                <strong>생물요소</strong>
+                <p>살아서 자라고 움직이거나 숨 쉬는 것<br>소나무 · 개구리 · 버섯</p>
+              </div>
+              <div class="tutorial-card nonlive">
+                <strong>비생물요소</strong>
+                <p>살아 있지 않지만 생물에게 영향을 주는 것<br>햇빛 · 물 · 흙 · 온도</p>
+              </div>
+            </div>
+            <div class="tutorial-tip">처음에는 쉬운 카드부터! 점수가 오르면 새로운 환경이 열려요.</div>
+            <div class="mode-buttons" aria-label="게임 모드 선택">
+              <button class="primary" id="start-button" type="button" data-action="start" data-mode="endless">
+                하트 도전
+                <small>하트 5개로 오래 버티기</small>
+              </button>
+              <button class="primary time-attack" type="button" data-action="start" data-mode="time">
+                60초 도전
+                <small>1분 동안 빠르게 풀기</small>
+              </button>
+            </div>
+          </div>
+        </div>
+          </section>
+        </div>
+
+        <nav class="controls" aria-label="분류 선택">
+          <button class="choice-button choice-live" id="choose-biotic" type="button" data-action="classify" data-choice="biotic">
+            생물요소
+            <small>살아 있는 것</small>
+          </button>
+          <button class="choice-button choice-nonlive" id="choose-abiotic" type="button" data-action="classify" data-choice="abiotic">
+            비생물요소
+            <small>살아 있지 않은 환경</small>
+          </button>
+        </nav>
+      </section>
+    </main>
+
+    <script>
+      const levelRules = [
+        { level: 1, score: 0, name: "기초 환경" },
+        { level: 2, score: 80, name: "강·호수·숲·산" },
+        { level: 3, score: 180, name: "초원·습지·갯벌·바다" },
+        { level: 4, score: 320, name: "극지방·열대·종합" },
+      ];
+
+      const cards = [
+        { name: "소나무", type: "biotic", level: 1, art: "tree", reason: "스스로 자라고 살아가는 식물이에요." },
+        { name: "개구리", type: "biotic", level: 1, art: "frog", reason: "먹고 자라며 살아가는 동물이에요." },
+        { name: "버섯", type: "biotic", level: 1, art: "mushroom", reason: "균류도 살아있는 생물이에요." },
+        { name: "강아지풀", type: "biotic", level: 1, art: "grass", reason: "싹이 트고 자라는 식물이에요." },
+        { name: "햇빛", type: "abiotic", level: 1, art: "sun", reason: "살아있지는 않지만 생물의 생활에 영향을 줘요." },
+        { name: "물", type: "abiotic", level: 1, art: "water", reason: "생물이 살아가는 데 필요한 비생물요소예요." },
+        { name: "공기", type: "abiotic", level: 1, art: "wind", reason: "살아있지 않지만 생물에게 꼭 필요해요." },
+        { name: "흙", type: "abiotic", level: 1, art: "soil", reason: "식물이 뿌리를 내리는 비생물요소예요." },
+        { name: "바위", type: "abiotic", level: 1, art: "rock", reason: "살아있지 않은 자연물이에요." },
+        { name: "물고기", type: "biotic", level: 2, art: "fish", reason: "물속에서 살아가는 동물이에요." },
+        { name: "메뚜기", type: "biotic", level: 2, art: "insect", reason: "움직이고 먹이를 먹는 동물이에요." },
+        { name: "곰팡이", type: "biotic", level: 2, art: "microbe", reason: "작지만 살아있는 생물이에요." },
+        { name: "달팽이", type: "biotic", level: 2, art: "snail", reason: "움직이고 자라는 동물이에요." },
+        { name: "갈대", type: "biotic", level: 2, art: "reed", reason: "물가에서 자라는 식물이에요." },
+        { name: "참새", type: "biotic", level: 2, art: "bird", reason: "숨 쉬고 먹이를 먹는 동물이에요." },
+        { name: "온도", type: "abiotic", level: 2, art: "temperature", reason: "생물이 살 수 있는 조건에 영향을 줘요." },
+        { name: "바람", type: "abiotic", level: 2, art: "wind", reason: "살아있지 않은 환경 조건이에요." },
+        { name: "모래", type: "abiotic", level: 2, art: "sand", reason: "살아있지 않은 자연물이에요." },
+        { name: "자갈", type: "abiotic", level: 2, art: "pebble", reason: "작은 돌이라 살아있지 않아요." },
+        { name: "물살", type: "abiotic", level: 2, art: "flow", reason: "물의 흐름은 생물에게 영향을 주는 조건이에요." },
+        { name: "그늘", type: "abiotic", level: 2, art: "shade", reason: "빛의 양을 바꾸는 살아있지 않은 환경이에요." },
+        { name: "참나무", type: "biotic", level: 2, art: "tree", reason: "숲에서 자라는 생물이에요." },
+        { name: "다람쥐", type: "biotic", level: 2, art: "snail", reason: "숲에서 먹이를 먹고 살아가는 동물이에요." },
+        { name: "수련", type: "biotic", level: 2, art: "reed", reason: "호수나 연못에서 자라는 식물이에요." },
+        { name: "송사리", type: "biotic", level: 2, art: "fish", reason: "민물에서 살아가는 물고기예요." },
+        { name: "강물", type: "abiotic", level: 2, art: "flow", reason: "강 생물에게 영향을 주는 비생물요소예요." },
+        { name: "호수물", type: "abiotic", level: 2, art: "water", reason: "호수 생물이 살아가는 비생물 환경이에요." },
+        { name: "산의 경사", type: "abiotic", level: 2, art: "rock", reason: "살아있지 않지만 생물이 사는 곳에 영향을 줘요." },
+        { name: "계곡 바위", type: "abiotic", level: 2, art: "rock", reason: "계곡의 살아있지 않은 자연물이에요." },
+        { name: "들풀", type: "biotic", level: 3, art: "grass", reason: "초원에서 자라는 생물이에요." },
+        { name: "사슴", type: "biotic", level: 3, art: "bird", reason: "숲이나 초원에서 살아가는 동물이에요." },
+        { name: "부들", type: "biotic", level: 3, art: "reed", reason: "습지에서 자라는 식물이에요." },
+        { name: "왜가리", type: "biotic", level: 3, art: "bird", reason: "습지나 물가에서 먹이를 찾는 동물이에요." },
+        { name: "갯지렁이", type: "biotic", level: 3, art: "snail", reason: "갯벌에서 살아가는 생물이에요." },
+        { name: "칠게", type: "biotic", level: 3, art: "crab", reason: "갯벌에서 살아가는 동물이에요." },
+        { name: "초원의 햇빛", type: "abiotic", level: 3, art: "sun", reason: "초원 생물에게 영향을 주는 빛이에요." },
+        { name: "건조한 흙", type: "abiotic", level: 3, art: "soil", reason: "초원의 생물에게 영향을 주는 비생물요소예요." },
+        { name: "습지의 진흙", type: "abiotic", level: 3, art: "soil", reason: "습지 생물이 사는 살아있지 않은 환경이에요." },
+        { name: "얕은 물", type: "abiotic", level: 3, art: "water", reason: "습지 생물에게 영향을 주는 비생물요소예요." },
+        { name: "갯벌 진흙", type: "abiotic", level: 3, art: "soil", reason: "갯벌 생물이 숨어 지내는 비생물 환경이에요." },
+        { name: "밀물과 썰물", type: "abiotic", level: 3, art: "wave", reason: "바닷물의 움직임은 살아있지 않은 환경 조건이에요." },
+        { name: "미역", type: "biotic", level: 3, art: "kelp", reason: "바다에서 자라는 생물이에요." },
+        { name: "다시마", type: "biotic", level: 3, art: "kelp", reason: "바다에서 자라는 생물이에요." },
+        { name: "산호", type: "biotic", level: 3, art: "coral", reason: "바다에서 살아가는 생물이에요." },
+        { name: "꽃게", type: "biotic", level: 3, art: "crab", reason: "움직이고 먹이를 먹는 바다 동물이에요." },
+        { name: "조개", type: "biotic", level: 3, art: "shell", reason: "바다나 갯벌에서 살아가는 동물이에요." },
+        { name: "고등어", type: "biotic", level: 3, art: "fish", reason: "바다에서 살아가는 물고기예요." },
+        { name: "해파리", type: "biotic", level: 3, art: "jellyfish", reason: "바다에서 살아가는 동물이에요." },
+        { name: "플랑크톤", type: "biotic", level: 3, art: "plankton", reason: "아주 작지만 살아있는 생물이에요." },
+        { name: "말미잘", type: "biotic", level: 3, art: "anemone", reason: "바닷속 바위에 붙어 살아가는 생물이에요." },
+        { name: "불가사리", type: "biotic", level: 3, art: "starfish", reason: "바다에서 움직이며 살아가는 동물이에요." },
+        { name: "바닷물", type: "abiotic", level: 3, art: "seawater", reason: "살아있지는 않지만 바다 생물의 환경이에요." },
+        { name: "소금기", type: "abiotic", level: 3, art: "salt", reason: "바닷물의 성질처럼 생물에게 영향을 주는 조건이에요." },
+        { name: "파도", type: "abiotic", level: 3, art: "wave", reason: "바닷물의 움직임은 살아있지 않은 환경 조건이에요." },
+        { name: "수온", type: "abiotic", level: 3, art: "temperature", reason: "바닷물의 온도는 생물의 생활에 영향을 줘요." },
+        { name: "수심", type: "abiotic", level: 3, art: "depth", reason: "물의 깊이는 빛과 압력에 영향을 줘요." },
+        { name: "모래사장", type: "abiotic", level: 3, art: "sand", reason: "살아있지 않은 바닷가 환경이에요." },
+        { name: "용존산소", type: "abiotic", level: 3, art: "oxygen", reason: "물속 생물이 숨 쉬는 데 필요한 조건이에요." },
+        { name: "바닷물 흐름", type: "abiotic", level: 3, art: "flow", reason: "살아있지 않은 물의 움직임이에요." },
+        { name: "문어", type: "biotic", level: 4, art: "octopus", reason: "바다에서 살아가는 동물이에요." },
+        { name: "고래", type: "biotic", level: 4, art: "whale", reason: "숨 쉬고 먹이를 먹는 바다 동물이에요." },
+        { name: "해초", type: "biotic", level: 4, art: "kelp", reason: "바닷속에서 자라는 생물이에요." },
+        { name: "갯벌 게", type: "biotic", level: 4, art: "crab", reason: "갯벌에서 살아가는 동물이에요." },
+        { name: "수압", type: "abiotic", level: 4, art: "pressure", reason: "물의 압력은 살아있지 않은 환경 조건이에요." },
+        { name: "바다 바닥", type: "abiotic", level: 4, art: "seafloor", reason: "생물이 붙거나 숨어 지내는 비생물 환경이에요." },
+        { name: "해류", type: "abiotic", level: 4, art: "flow", reason: "바닷물의 큰 흐름은 생물에게 영향을 줘요." },
+        { name: "물의 밝기", type: "abiotic", level: 4, art: "light", reason: "빛의 양은 바닷속 생물에게 영향을 줘요." },
+        { name: "펭귄", type: "biotic", level: 4, art: "bird", reason: "극지방 근처에서 살아가는 동물이에요." },
+        { name: "북극곰", type: "biotic", level: 4, art: "whale", reason: "추운 지역에서 살아가는 동물이에요." },
+        { name: "이끼", type: "biotic", level: 4, art: "grass", reason: "추운 지역이나 습한 곳에서도 자라는 생물이에요." },
+        { name: "야자나무", type: "biotic", level: 4, art: "tree", reason: "열대 지역에서 자라는 식물이에요." },
+        { name: "원숭이", type: "biotic", level: 4, art: "frog", reason: "열대 숲에서 살아가는 동물이에요." },
+        { name: "열대 곤충", type: "biotic", level: 4, art: "insect", reason: "열대 지역에서 살아가는 생물이에요." },
+        { name: "얼음", type: "abiotic", level: 4, art: "depth", reason: "살아있지 않지만 극지 생물에게 영향을 줘요." },
+        { name: "눈", type: "abiotic", level: 4, art: "seawater", reason: "추운 지역의 살아있지 않은 환경요소예요." },
+        { name: "낮은 기온", type: "abiotic", level: 4, art: "temperature", reason: "극지방 생물의 생활에 영향을 줘요." },
+        { name: "높은 습도", type: "abiotic", level: 4, art: "water", reason: "열대 지역 생물에게 영향을 주는 조건이에요." },
+        { name: "많은 비", type: "abiotic", level: 4, art: "water", reason: "열대 지역의 살아있지 않은 환경 조건이에요." },
+        { name: "울창한 그늘", type: "abiotic", level: 4, art: "shade", reason: "열대 숲의 빛 조건을 바꾸는 비생물요소예요." },
+      ];
+
+      const artTemplates = {
+        tree: `<rect x="52" y="58" width="16" height="34" rx="6" fill="#8a5a2b"/><circle cx="60" cy="45" r="28" fill="#49bf65"/><circle cx="42" cy="55" r="18" fill="#7ee07d"/><circle cx="78" cy="55" r="18" fill="#2f9d55"/>`,
+        frog: `<ellipse cx="60" cy="68" rx="34" ry="22" fill="#57c96a"/><circle cx="45" cy="46" r="12" fill="#57c96a"/><circle cx="75" cy="46" r="12" fill="#57c96a"/><circle cx="45" cy="44" r="5" fill="#17351c"/><circle cx="75" cy="44" r="5" fill="#17351c"/><path d="M46 72 Q60 84 74 72" fill="none" stroke="#17351c" stroke-width="5" stroke-linecap="round"/>`,
+        mushroom: `<path d="M34 58 Q60 22 86 58 Z" fill="#f06b6b"/><circle cx="48" cy="50" r="5" fill="#fff3c4"/><circle cx="62" cy="42" r="6" fill="#fff3c4"/><circle cx="75" cy="52" r="5" fill="#fff3c4"/><rect x="48" y="58" width="24" height="34" rx="11" fill="#f4e4bf"/>`,
+        grass: `<path d="M28 90 C36 70 34 52 44 34 C48 56 48 72 54 90 Z" fill="#7ed957"/><path d="M56 90 C62 64 68 50 78 30 C78 58 74 72 82 90 Z" fill="#3cab56"/><path d="M44 90 C52 66 58 58 64 42 C66 66 62 76 68 90 Z" fill="#b7ef65"/>`,
+        sun: `<circle cx="60" cy="60" r="23" fill="#ffd54f"/><g stroke="#ff9e2b" stroke-width="7" stroke-linecap="round"><path d="M60 17v14"/><path d="M60 89v14"/><path d="M17 60h14"/><path d="M89 60h14"/><path d="M30 30l10 10"/><path d="M80 80l10 10"/><path d="M90 30l-10 10"/><path d="M40 80l-10 10"/></g>`,
+        water: `<path d="M60 22 C78 48 88 62 88 78 C88 95 75 104 60 104 C45 104 32 95 32 78 C32 62 42 48 60 22 Z" fill="#57bff2"/><path d="M45 82 C52 90 70 90 76 78" fill="none" stroke="#dff7ff" stroke-width="5" stroke-linecap="round"/>`,
+        wind: `<g fill="none" stroke="#87b8ff" stroke-width="8" stroke-linecap="round"><path d="M22 43 H78 Q96 43 96 28"/><path d="M17 63 H92"/><path d="M34 82 H75 Q90 82 90 96"/></g>`,
+        soil: `<rect x="24" y="42" width="72" height="52" rx="16" fill="#9b6b43"/><circle cx="44" cy="60" r="6" fill="#70482c"/><circle cx="68" cy="74" r="5" fill="#70482c"/><circle cx="82" cy="57" r="4" fill="#70482c"/>`,
+        rock: `<path d="M24 76 L38 45 L64 31 L88 52 L96 82 L76 96 L40 94 Z" fill="#9fa4aa"/><path d="M42 48 L62 40 L82 58" fill="none" stroke="#c8ccd1" stroke-width="5" stroke-linecap="round"/>`,
+        fish: `<ellipse cx="58" cy="62" rx="31" ry="19" fill="#47b9f2"/><path d="M84 62 L103 45 V79 Z" fill="#2d8bd4"/><circle cx="49" cy="57" r="4" fill="#102117"/><path d="M58 42 Q68 52 58 62 Q68 72 58 82" fill="none" stroke="#d8f7ff" stroke-width="5"/>`,
+        insect: `<ellipse cx="60" cy="62" rx="15" ry="27" fill="#7ac943"/><circle cx="60" cy="34" r="12" fill="#5cad36"/><g stroke="#48331a" stroke-width="5" stroke-linecap="round"><path d="M45 56 L25 45"/><path d="M45 70 L25 82"/><path d="M75 56 L95 45"/><path d="M75 70 L95 82"/></g>`,
+        microbe: `<circle cx="60" cy="62" r="24" fill="#9a7cff"/><g stroke="#6d52d8" stroke-width="5" stroke-linecap="round"><path d="M60 25v12"/><path d="M60 87v12"/><path d="M25 62h12"/><path d="M83 62h12"/><path d="M37 39l9 9"/><path d="M83 39l-9 9"/><path d="M37 85l9-9"/><path d="M83 85l-9-9"/></g><circle cx="52" cy="57" r="4" fill="#ffffff"/><circle cx="68" cy="69" r="5" fill="#ffffff"/>`,
+        snail: `<circle cx="55" cy="66" r="23" fill="#d79655"/><circle cx="55" cy="66" r="11" fill="none" stroke="#8e5b32" stroke-width="5"/><rect x="65" y="70" width="34" height="15" rx="8" fill="#aee084"/><g stroke="#466d37" stroke-width="4" stroke-linecap="round"><path d="M90 70 L98 55"/><path d="M83 70 L88 55"/></g>`,
+        reed: `<rect x="56" y="36" width="7" height="60" rx="4" fill="#4d9a52"/><ellipse cx="60" cy="28" rx="10" ry="18" fill="#b88343"/><path d="M56 82 Q36 62 28 44" fill="none" stroke="#69bc62" stroke-width="7" stroke-linecap="round"/><path d="M64 78 Q82 58 94 40" fill="none" stroke="#69bc62" stroke-width="7" stroke-linecap="round"/>`,
+        bird: `<path d="M35 66 Q54 32 84 58 Q76 88 45 84 Z" fill="#7cb7ff"/><path d="M44 67 Q62 80 80 61" fill="#4389d6"/><circle cx="70" cy="52" r="4" fill="#102117"/><path d="M84 58 L100 52 L86 66 Z" fill="#ffb94d"/>`,
+        temperature: `<rect x="54" y="24" width="14" height="50" rx="7" fill="#f4f7ff" stroke="#456" stroke-width="5"/><circle cx="61" cy="82" r="18" fill="#ff6961" stroke="#456" stroke-width="5"/><rect x="58" y="46" width="6" height="37" fill="#ff6961"/>`,
+        sand: `<path d="M18 82 Q42 64 66 78 Q84 88 102 76 V104 H18 Z" fill="#e9c978"/><circle cx="42" cy="83" r="4" fill="#caa357"/><circle cx="72" cy="91" r="3" fill="#caa357"/><circle cx="88" cy="82" r="3" fill="#caa357"/>`,
+        pebble: `<ellipse cx="44" cy="76" rx="20" ry="14" fill="#b7b2aa"/><ellipse cx="72" cy="67" rx="24" ry="17" fill="#918c84"/><ellipse cx="80" cy="86" rx="16" ry="10" fill="#cbc6bd"/>`,
+        flow: `<g fill="none" stroke="#4fb3ff" stroke-width="8" stroke-linecap="round"><path d="M22 46 C40 32 58 60 78 44 C88 36 96 36 104 42"/><path d="M18 70 C40 54 58 84 82 66 C90 60 98 60 104 64"/><path d="M30 91 C50 80 65 100 90 84"/></g>`,
+        shade: `<path d="M28 42 Q60 22 92 42 Z" fill="#5e7f5b"/><rect x="56" y="42" width="8" height="48" rx="4" fill="#684929"/><ellipse cx="60" cy="94" rx="36" ry="9" fill="#49644c" opacity="0.45"/>`,
+        kelp: `<path d="M40 96 C32 70 52 54 42 28" fill="none" stroke="#2fa86d" stroke-width="8" stroke-linecap="round"/><path d="M62 96 C54 70 74 55 68 25" fill="none" stroke="#36c084" stroke-width="8" stroke-linecap="round"/><path d="M80 96 C72 75 92 62 84 38" fill="none" stroke="#1e8f5e" stroke-width="8" stroke-linecap="round"/>`,
+        coral: `<g fill="none" stroke="#ff7f87" stroke-width="9" stroke-linecap="round"><path d="M60 96 V50"/><path d="M60 72 L38 52"/><path d="M60 66 L84 42"/><path d="M48 62 L42 36"/><path d="M74 52 L92 58"/></g>`,
+        crab: `<ellipse cx="60" cy="68" rx="24" ry="18" fill="#f06f5f"/><circle cx="50" cy="56" r="5" fill="#102117"/><circle cx="70" cy="56" r="5" fill="#102117"/><g stroke="#d94e42" stroke-width="6" stroke-linecap="round"><path d="M38 68 L22 56"/><path d="M82 68 L98 56"/><path d="M42 80 L24 88"/><path d="M78 80 L96 88"/></g><circle cx="20" cy="52" r="8" fill="#f06f5f"/><circle cx="100" cy="52" r="8" fill="#f06f5f"/>`,
+        shell: `<path d="M28 82 C36 42 84 42 92 82 Z" fill="#ffd1b5" stroke="#cc8566" stroke-width="5"/><g stroke="#cc8566" stroke-width="4"><path d="M60 82 V42"/><path d="M45 82 L52 46"/><path d="M75 82 L68 46"/></g>`,
+        jellyfish: `<path d="M32 58 C36 26 84 26 88 58 Q74 72 60 62 Q46 72 32 58 Z" fill="#c7a7ff"/><g stroke="#8967d4" stroke-width="5" stroke-linecap="round"><path d="M44 65 C36 78 48 86 38 98"/><path d="M60 66 C52 82 68 88 58 102"/><path d="M76 65 C68 78 80 86 72 98"/></g>`,
+        plankton: `<circle cx="54" cy="56" r="13" fill="#74e0c7"/><circle cx="76" cy="76" r="10" fill="#a1f06a"/><circle cx="38" cy="80" r="8" fill="#ffd36b"/><g stroke="#3aa890" stroke-width="4" stroke-linecap="round"><path d="M54 35 V22"/><path d="M43 46 L30 34"/><path d="M65 46 L78 34"/></g>`,
+        anemone: `<ellipse cx="60" cy="86" rx="25" ry="12" fill="#d989ff"/><g stroke="#d989ff" stroke-width="7" stroke-linecap="round"><path d="M42 78 C28 62 34 48 24 34"/><path d="M52 76 C44 55 56 42 50 26"/><path d="M63 76 C68 55 60 42 68 24"/><path d="M76 78 C90 60 82 48 96 34"/></g>`,
+        starfish: `<path d="M60 24 L70 52 L100 50 L76 68 L86 98 L60 80 L34 98 L44 68 L20 50 L50 52 Z" fill="#ff9d5c" stroke="#de6b36" stroke-width="5" stroke-linejoin="round"/>`,
+        seawater: `<rect x="18" y="38" width="84" height="56" rx="18" fill="#4ab8ff"/><path d="M24 62 C40 50 52 74 68 60 C80 50 90 54 98 60" fill="none" stroke="#e5f8ff" stroke-width="6" stroke-linecap="round"/>`,
+        salt: `<rect x="45" y="30" width="30" height="52" rx="9" fill="#f5f7ff" stroke="#7e94a6" stroke-width="5"/><circle cx="60" cy="46" r="7" fill="#8ecaf4"/><circle cx="42" cy="91" r="3" fill="#ffffff"/><circle cx="56" cy="96" r="3" fill="#ffffff"/><circle cx="72" cy="91" r="3" fill="#ffffff"/>`,
+        wave: `<path d="M20 78 C38 46 60 86 76 54 C84 38 98 44 104 58 C98 84 70 96 42 90 C32 88 24 84 20 78 Z" fill="#48bdf2"/><path d="M36 70 C48 58 62 76 76 60" fill="none" stroke="#e2fbff" stroke-width="7" stroke-linecap="round"/>`,
+        depth: `<rect x="22" y="26" width="76" height="76" rx="18" fill="#2375c8"/><path d="M60 32 V90" stroke="#e6f6ff" stroke-width="6" stroke-linecap="round"/><path d="M48 78 L60 92 L72 78" fill="none" stroke="#e6f6ff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`,
+        oxygen: `<circle cx="46" cy="70" r="17" fill="#d8f7ff" stroke="#5fbbe6" stroke-width="5"/><circle cx="76" cy="52" r="13" fill="#d8f7ff" stroke="#5fbbe6" stroke-width="5"/><circle cx="78" cy="82" r="9" fill="#d8f7ff" stroke="#5fbbe6" stroke-width="5"/>`,
+        octopus: `<circle cx="60" cy="50" r="24" fill="#b37cff"/><g stroke="#8a58db" stroke-width="8" stroke-linecap="round"><path d="M38 70 C20 82 34 96 20 102"/><path d="M50 74 C40 86 52 96 42 104"/><path d="M70 74 C80 86 68 96 78 104"/><path d="M82 70 C100 82 86 96 100 102"/></g><circle cx="52" cy="47" r="4" fill="#102117"/><circle cx="68" cy="47" r="4" fill="#102117"/>`,
+        whale: `<path d="M24 66 C38 42 82 38 96 62 L108 50 V78 L96 66 C82 90 40 88 24 66 Z" fill="#5aa0d6"/><circle cx="44" cy="59" r="4" fill="#102117"/><path d="M58 43 Q66 28 78 42" fill="none" stroke="#5aa0d6" stroke-width="7" stroke-linecap="round"/>`,
+        pressure: `<circle cx="60" cy="60" r="31" fill="#75b8ff"/><path d="M60 28 V92 M28 60 H92" stroke="#235187" stroke-width="7" stroke-linecap="round"/><path d="M47 47 L28 28 M73 47 L92 28 M47 73 L28 92 M73 73 L92 92" stroke="#235187" stroke-width="5" stroke-linecap="round"/>`,
+        seafloor: `<path d="M18 82 Q38 62 60 78 Q82 94 102 72 V104 H18 Z" fill="#a7774f"/><path d="M30 78 C40 68 50 74 58 80" fill="none" stroke="#d0a06e" stroke-width="5"/><circle cx="78" cy="84" r="6" fill="#8d6748"/>`,
+        light: `<circle cx="60" cy="34" r="14" fill="#fff176"/><path d="M34 100 L56 48 H64 L86 100 Z" fill="#fff7ae" opacity="0.72"/>`,
+      };
+
+      const els = {
+        shell: document.querySelector(".game-shell"),
+        stage: document.querySelector("#stage"),
+        cardLayer: document.querySelector("#card-layer"),
+        overlay: document.querySelector("#overlay"),
+        toast: document.querySelector("#stage-toast"),
+        countdown: document.querySelector("#countdown"),
+        startButton: document.querySelector("#start-button"),
+        timeStat: document.querySelector("#time-stat"),
+        timeLeft: document.querySelector("#time-left"),
+        homeButton: document.querySelector("#home-button"),
+        soundButton: document.querySelector("#sound-button"),
+        lives: document.querySelector("#lives"),
+        level: document.querySelector("#level"),
+        score: document.querySelector("#score"),
+        combo: document.querySelector("#combo"),
+        best: document.querySelector("#best"),
+        chooseBiotic: document.querySelector("#choose-biotic"),
+        chooseAbiotic: document.querySelector("#choose-abiotic"),
+      };
+
+      const state = {
+        running: false,
+        score: 0,
+        combo: 0,
+        maxCombo: 0,
+        lives: 5,
+        level: 1,
+        mode: "endless",
+        timeLeft: 60,
+        timerId: null,
+        countdownId: null,
+        audioContext: null,
+        soundOn: localStorage.getItem("classification-runner-sound") !== "off",
+        locked: false,
+        best: Number(localStorage.getItem("classification-runner-best") || 0),
+        active: null,
+        queue: [],
+        round: 0,
+      };
+
+      function shuffle(list) {
+        return [...list]
+          .map((item) => ({ item, sort: Math.random() }))
+          .sort((a, b) => a.sort - b.sort)
+          .map(({ item }) => item);
+      }
+
+      function refillQueue() {
+        while (state.queue.length < 8) {
+          const available = playableCards();
+          const biotic = shuffle(available.filter((card) => card.type === "biotic")).slice(0, 5);
+          const abiotic = shuffle(available.filter((card) => card.type === "abiotic")).slice(0, 5);
+          state.queue.push(...shuffle([...biotic, ...abiotic]));
+        }
+      }
+
+      function playableCards() {
+        return cards.filter((card) => card.level <= state.level);
+      }
+
+      function nextCard() {
+        refillQueue();
+        state.active = state.queue.shift();
+        state.round += 1;
+        renderCard();
+      }
+
+      function cardMarkup(card) {
+        const element = document.createElement("div");
+        element.className = "runner-card";
+        element.innerHTML = `
+          <span class="icon" aria-hidden="true"><img class="card-art" src="${clipArtSrc(card)}" alt="" /></span>
+          <span>
+            <strong>${card.name}</strong>
+          </span>
+        `;
+        element.setAttribute("aria-label", `분류할 카드: ${card.name}`);
+        return element;
+      }
+
+      function cardBackMarkup(card, index) {
+        const element = document.createElement("div");
+        element.className = "runner-card card-back";
+        element.setAttribute("aria-hidden", "true");
+        element.innerHTML = `
+          <span class="icon" aria-hidden="true"><img class="card-art" src="${clipArtSrc(card)}" alt="" /></span>
+          <span>
+            <strong>${card.name}</strong>
+          </span>
+        `;
+        const offsetY = 26 + (index - 1) * 26;
+        const width = 316 - (index - 1) * 32;
+        const widthPercent = 70 - (index - 1) * 8;
+        const scaleY = 1 - index * 0.035;
+        element.style.minWidth = `min(${widthPercent}%, ${width}px)`;
+        element.style.maxWidth = `min(${widthPercent}%, ${width}px)`;
+        element.style.transform = `translate(-50%, calc(-50% - ${offsetY}px)) scaleY(${scaleY})`;
+        element.style.zIndex = String(5 - index);
+        element.style.opacity = String(0.76 - index * 0.1);
+        return element;
+      }
+
+      function clipArtSrc(card) {
+        const bg = card.type === "biotic" ? ["#eaffd8", "#a8efb0"] : ["#e6f8ff", "#acdfff"];
+        const art = artTemplates[card.art] || artTemplates.water;
+        const svg = `
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+            <defs>
+              <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0" stop-color="${bg[0]}"/>
+                <stop offset="1" stop-color="${bg[1]}"/>
+              </linearGradient>
+            </defs>
+            <rect width="120" height="120" rx="28" fill="url(#bg)"/>
+            <circle cx="25" cy="24" r="16" fill="#ffffff" opacity="0.58"/>
+            ${art}
+          </svg>
+        `;
+        return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+      }
+
+      function renderCard() {
+        els.cardLayer.innerHTML = "";
+        if (!state.active) return;
+        const backs = state.queue.slice(0, 4).map((card, index) => cardBackMarkup(card, index + 1));
+        els.cardLayer.append(...backs.reverse(), cardMarkup(state.active));
+      }
+
+      function startGame(mode = "endless") {
+        playSound("start");
+        stopTimer();
+        stopCountdown();
+        state.running = true;
+        state.mode = mode;
+        state.score = 0;
+        state.combo = 0;
+        state.maxCombo = 0;
+        state.lives = 5;
+        state.level = 1;
+        state.timeLeft = mode === "time" ? 60 : 0;
+        state.locked = mode === "time";
+        state.queue = [];
+        state.round = 0;
+        els.shell.classList.add("is-playing");
+        els.overlay.hidden = true;
+        document.activeElement?.blur();
+        els.stage.scrollTop = 0;
+        els.homeButton.hidden = false;
+        clearToast();
+        refillQueue();
+        nextCard();
+        renderStats();
+        if (mode === "time") {
+          startCountdown();
+        } else {
+          startTimer();
+        }
+      }
+
+      function classify(choice) {
+        if (!state.running || !state.active || state.locked) return;
+        state.locked = true;
+        const card = state.active;
+        const correct = choice === card.type;
+        const currentCard = els.cardLayer.querySelector(".runner-card:not(.card-back)");
+        if (correct) {
+          state.combo += 1;
+          state.maxCombo = Math.max(state.maxCombo, state.combo);
+          const bonus = Math.min(10, Math.floor(state.combo / 3) * 2);
+          state.score += 10 + bonus;
+          const leveledUp = updateLevel();
+          playSound(leveledUp ? "level" : "correct");
+          showToast(leveledUp ? "level" : "right", leveledUp ? `레벨 ${state.level}!` : "정답!");
+          pulseStage("right-pulse");
+          currentCard?.classList.add("correct-burst");
+          window.setTimeout(() => {
+            if (!state.running) return;
+            state.locked = false;
+            nextCard();
+          }, 430);
+        } else {
+          state.combo = 0;
+          state.lives = Math.max(0, state.lives - 1);
+          playSound("wrong");
+          showToast("wrong", "아쉬워!");
+          pulseStage("wrong-pulse");
+          currentCard?.classList.add("wrong-shake");
+          if (state.lives <= 0) {
+            window.setTimeout(() => {
+              if (!state.running) return;
+              state.locked = false;
+              finishGame();
+            }, 520);
+          } else {
+            window.setTimeout(() => {
+              if (!state.running) return;
+              state.locked = false;
+              nextCard();
+            }, 520);
+          }
+        }
+        renderStats();
+      }
+
+      function showToast(kind, message) {
+        els.toast.className = `stage-toast ${kind}`;
+        els.toast.textContent = message;
+        void els.toast.offsetWidth;
+        els.toast.classList.add("show");
+      }
+
+      function pulseStage(className) {
+        els.stage.classList.remove("right-pulse", "wrong-pulse");
+        void els.stage.offsetWidth;
+        els.stage.classList.add(className);
+      }
+
+      function clearToast() {
+        els.toast.className = "stage-toast";
+        els.toast.textContent = "";
+      }
+
+      function ensureAudio() {
+        if (!state.soundOn) return null;
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return null;
+        if (!state.audioContext) {
+          state.audioContext = new AudioContextClass();
+        }
+        if (state.audioContext.state === "suspended") {
+          state.audioContext.resume();
+        }
+        return state.audioContext;
+      }
+
+      function tone(frequency, start, duration, type = "sine", volume = 0.08) {
+        const audio = ensureAudio();
+        if (!audio) return;
+        const oscillator = audio.createOscillator();
+        const gain = audio.createGain();
+        oscillator.type = type;
+        oscillator.frequency.setValueAtTime(frequency, audio.currentTime + start);
+        gain.gain.setValueAtTime(0.0001, audio.currentTime + start);
+        gain.gain.exponentialRampToValueAtTime(volume, audio.currentTime + start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + start + duration);
+        oscillator.connect(gain);
+        gain.connect(audio.destination);
+        oscillator.start(audio.currentTime + start);
+        oscillator.stop(audio.currentTime + start + duration + 0.03);
+      }
+
+      function playSound(name) {
+        if (!state.soundOn) return;
+        const patterns = {
+          start: [
+            [392, 0, 0.08, "triangle", 0.07],
+            [523, 0.08, 0.11, "triangle", 0.07],
+          ],
+          count: [[520, 0, 0.08, "square", 0.045]],
+          go: [
+            [660, 0, 0.08, "triangle", 0.07],
+            [880, 0.08, 0.16, "triangle", 0.075],
+          ],
+          correct: [
+            [660, 0, 0.08, "triangle", 0.075],
+            [880, 0.08, 0.12, "triangle", 0.075],
+          ],
+          wrong: [
+            [220, 0, 0.12, "sawtooth", 0.055],
+            [165, 0.1, 0.16, "sawtooth", 0.045],
+          ],
+          level: [
+            [523, 0, 0.08, "triangle", 0.075],
+            [659, 0.08, 0.08, "triangle", 0.075],
+            [784, 0.16, 0.16, "triangle", 0.08],
+          ],
+          end: [
+            [392, 0, 0.12, "triangle", 0.065],
+            [330, 0.12, 0.12, "triangle", 0.06],
+            [262, 0.24, 0.18, "triangle", 0.055],
+          ],
+          tap: [[440, 0, 0.05, "triangle", 0.04]],
+        };
+        const pattern = patterns[name];
+        if (!pattern) return;
+        if (!(window.AudioContext || window.webkitAudioContext) && window.Audio) {
+          playFallbackSound(pattern);
+          return;
+        }
+        pattern.forEach(([frequency, start, duration, type, volume]) => {
+          tone(frequency, start, duration, type, volume);
+        });
+      }
+
+      function playFallbackSound(pattern) {
+        const sampleRate = 22050;
+        const totalSeconds = Math.max(...pattern.map(([, start, duration]) => start + duration)) + 0.05;
+        const sampleCount = Math.ceil(sampleRate * totalSeconds);
+        const buffer = new ArrayBuffer(44 + sampleCount * 2);
+        const view = new DataView(buffer);
+        writeString(view, 0, "RIFF");
+        view.setUint32(4, 36 + sampleCount * 2, true);
+        writeString(view, 8, "WAVE");
+        writeString(view, 12, "fmt ");
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, 1, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, sampleRate * 2, true);
+        view.setUint16(32, 2, true);
+        view.setUint16(34, 16, true);
+        writeString(view, 36, "data");
+        view.setUint32(40, sampleCount * 2, true);
+        for (let index = 0; index < sampleCount; index += 1) {
+          const now = index / sampleRate;
+          let sample = 0;
+          pattern.forEach(([frequency, start, duration, type, volume]) => {
+            const local = now - start;
+            if (local < 0 || local > duration) return;
+            const fade = Math.min(1, local / 0.02, (duration - local) / 0.04);
+            const wave = fallbackWave(type, frequency, local);
+            sample += wave * volume * fade;
+          });
+          const value = Math.max(-1, Math.min(1, sample)) * 32767;
+          view.setInt16(44 + index * 2, value, true);
+        }
+        const url = URL.createObjectURL(new Blob([buffer], { type: "audio/wav" }));
+        const audio = new Audio(url);
+        audio.addEventListener("ended", () => URL.revokeObjectURL(url), { once: true });
+        audio.play().catch(() => URL.revokeObjectURL(url));
+      }
+
+      function fallbackWave(type, frequency, time) {
+        const phase = 2 * Math.PI * frequency * time;
+        if (type === "square") return Math.sign(Math.sin(phase));
+        if (type === "sawtooth") return 2 * ((frequency * time) % 1) - 1;
+        return Math.sin(phase);
+      }
+
+      function writeString(view, offset, text) {
+        for (let index = 0; index < text.length; index += 1) {
+          view.setUint8(offset + index, text.charCodeAt(index));
+        }
+      }
+
+      function toggleSound() {
+        state.soundOn = !state.soundOn;
+        localStorage.setItem("classification-runner-sound", state.soundOn ? "on" : "off");
+        updateSoundButton();
+        playSound("tap");
+      }
+
+      function updateSoundButton() {
+        els.soundButton.textContent = state.soundOn ? "소리 켬" : "소리 끔";
+        els.soundButton.setAttribute("aria-pressed", String(state.soundOn));
+      }
+
+      function renderStats() {
+        els.lives.innerHTML = renderHearts(state.lives);
+        els.lives.setAttribute("aria-label", `하트 ${state.lives}개`);
+        els.timeStat.hidden = state.mode !== "time";
+        els.timeLeft.textContent = state.mode === "time" ? `${state.timeLeft}` : "60";
+        els.level.textContent = state.level;
+        els.score.textContent = state.score;
+        els.combo.textContent = state.combo;
+        els.best.textContent = state.best;
+      }
+
+      function tutorialMarkup() {
+        return `
+          <div class="start-panel">
+            <h2>카드를 보고 척척 분류해요!</h2>
+            <p>카드 속 대상이 생물요소인지 비생물요소인지 골라 주세요.</p>
+            <div class="tutorial-grid" aria-label="분류 방법">
+              <div class="tutorial-card">
+                <strong>생물요소</strong>
+                <p>살아서 자라고 움직이거나 숨 쉬는 것<br />소나무 · 개구리 · 버섯</p>
+              </div>
+              <div class="tutorial-card nonlive">
+                <strong>비생물요소</strong>
+                <p>살아 있지 않지만 생물에게 영향을 주는 것<br />햇빛 · 물 · 흙 · 온도</p>
+              </div>
+            </div>
+            <div class="tutorial-tip">처음에는 쉬운 카드부터! 점수가 오르면 새로운 환경이 열려요.</div>
+            <div class="mode-buttons" aria-label="게임 모드 선택">
+              <button class="primary" id="start-button" type="button" data-action="start" data-mode="endless">
+                하트 도전
+                <small>하트 5개로 오래 버티기</small>
+              </button>
+              <button class="primary time-attack" type="button" data-action="start" data-mode="time">
+                60초 도전
+                <small>1분 동안 빠르게 풀기</small>
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      function showHome() {
+        playSound("tap");
+        stopCountdown();
+        stopTimer();
+        state.running = false;
+        state.locked = false;
+        state.score = 0;
+        state.combo = 0;
+        state.maxCombo = 0;
+        state.lives = 5;
+        state.level = 1;
+        state.mode = "endless";
+        state.timeLeft = 60;
+        state.active = null;
+        state.queue = [];
+        state.round = 0;
+        els.shell.classList.remove("is-playing");
+        els.cardLayer.innerHTML = "";
+        clearToast();
+        renderStats();
+        els.homeButton.hidden = true;
+        els.overlay.innerHTML = tutorialMarkup();
+        els.overlay.hidden = false;
+        document.activeElement?.blur();
+        els.stage.scrollTop = 0;
+      }
+
+      function renderHearts(count) {
+        return Array.from({ length: 5 }, (_, index) => {
+          const className = index < count ? "" : ' class="empty"';
+          return `<span${className}>♥</span>`;
+        }).join("");
+      }
+
+      function startCountdown() {
+        stopCountdown();
+        let count = 3;
+        showCountdown(count);
+        state.countdownId = window.setInterval(() => {
+          count -= 1;
+          if (count > 0) {
+            showCountdown(count);
+            return;
+          }
+          if (count === 0) {
+            showCountdown("시작!");
+            return;
+          }
+          stopCountdown();
+          if (!state.running || state.mode !== "time") return;
+          state.locked = false;
+          startTimer();
+        }, 900);
+      }
+
+      function showCountdown(value) {
+        playSound(value === "시작!" ? "go" : "count");
+        els.countdown.hidden = false;
+        els.countdown.innerHTML = `<div class="countdown-number ${value === "시작!" ? "go" : ""}">${value}</div>`;
+      }
+
+      function stopCountdown() {
+        if (state.countdownId) {
+          window.clearInterval(state.countdownId);
+          state.countdownId = null;
+        }
+        els.countdown.hidden = true;
+        els.countdown.innerHTML = "";
+      }
+
+      function levelForScore(score) {
+        return levelRules.reduce((current, rule) => (score >= rule.score ? rule.level : current), 1);
+      }
+
+      function updateLevel() {
+        const nextLevel = levelForScore(state.score);
+        if (nextLevel <= state.level) return false;
+        state.level = nextLevel;
+        return true;
+      }
+
+      function startTimer() {
+        if (state.mode !== "time") return;
+        state.timerId = window.setInterval(() => {
+          state.timeLeft = Math.max(0, state.timeLeft - 1);
+          renderStats();
+          if (state.timeLeft <= 0) {
+            finishGame("time");
+          }
+        }, 1000);
+      }
+
+      function stopTimer() {
+        if (!state.timerId) return;
+        window.clearInterval(state.timerId);
+        state.timerId = null;
+      }
+
+      function finishGame(reason = "life") {
+        if (!state.running) return;
+        playSound("end");
+        stopCountdown();
+        stopTimer();
+        state.running = false;
+        state.best = Math.max(state.best, state.score);
+        localStorage.setItem("classification-runner-best", String(state.best));
+        saveRunResult();
+        renderStats();
+        els.shell.classList.remove("is-playing");
+        els.homeButton.hidden = true;
+        els.overlay.hidden = false;
+        document.activeElement?.blur();
+        els.stage.scrollTop = 0;
+        els.overlay.innerHTML = `
+          <div class="start-panel result-panel">
+            <h2>게임 끝</h2>
+            <div class="result-score" aria-label="내 점수 ${state.score}점">
+              <strong>내 점수: ${state.score}점</strong>
+              <span>최고 점수: ${state.best}점</span>
+            </div>
+            <div class="result-actions" aria-label="종료 후 선택">
+              <button class="primary" id="restart-button" type="button" data-action="restart">다시하기</button>
+              <button class="secondary" type="button" data-action="home">처음으로</button>
+            </div>
+          </div>
+        `;
+      }
+
+      function restartGame() {
+        startGame(state.mode);
+      }
+
+      function saveRunResult() {
+        const key = "classification-runner-results";
+        const previous = JSON.parse(localStorage.getItem(key) || "[]");
+        previous.unshift({
+          mode: state.mode,
+          level: state.level,
+          score: state.score,
+          rounds: state.round,
+          bestCombo: state.maxCombo,
+          finishedAt: new Date().toISOString(),
+        });
+        localStorage.setItem(key, JSON.stringify(previous.slice(0, 30)));
+      }
+
+      function handleKeydown(event) {
+        if (!state.running && (event.key === "Enter" || event.key === " ")) {
+          event.preventDefault();
+          startGame("endless");
+          return;
+        }
+        if (["ArrowLeft", "a", "A"].includes(event.key)) {
+          event.preventDefault();
+          classify("biotic");
+        }
+        if (["ArrowRight", "d", "D"].includes(event.key)) {
+          event.preventDefault();
+          classify("abiotic");
+        }
+      }
+
+      function handleButtonClick(event) {
+        const button = event.target.closest("button[data-action]");
+        if (!button) return;
+        const { action } = button.dataset;
+        if (action === "start") {
+          startGame(button.dataset.mode || "endless");
+        }
+        if (action === "restart") {
+          restartGame();
+        }
+        if (action === "home") {
+          showHome();
+        }
+        if (action === "sound") {
+          toggleSound();
+        }
+        if (action === "classify") {
+          classify(button.dataset.choice);
+        }
+      }
+
+      Object.assign(window, {
+        classify,
+        restartGame,
+        showHome,
+        startGame,
+        toggleSound,
+      });
+
+      document.addEventListener("click", handleButtonClick);
+      window.addEventListener("keydown", handleKeydown);
+      els.overlay.innerHTML = tutorialMarkup();
+      els.homeButton.hidden = true;
+      updateSoundButton();
+      renderStats();
+    </script>
+  
+
+</body><div id="codex-agent-overlay-root" data-codex-agent-overlay-root="true"></div></html>
