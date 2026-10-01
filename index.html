@@ -1185,7 +1185,7 @@
             <strong>${card.name}</strong>
           </span>
         `;
-        const offsetY = 26 + (index - 1) * 26;
+        const offsetY = index === 1 ? 58 : 26 + (index - 1) * 26;
         const width = 316 - (index - 1) * 32;
         const widthPercent = 70 - (index - 1) * 8;
         const scaleY = 1 - index * 0.035;
