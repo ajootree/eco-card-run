@@ -295,8 +295,8 @@
         width: 58px;
         height: 58px;
         border-radius: 19px;
-        border: 2px solid #5ca879;
-        background: #ddf6dc;
+        border: 2px solid #a69f90;
+        background: #fffdf6;
         font-size: 2rem;
         overflow: hidden;
       }
@@ -1198,7 +1198,8 @@
       }
 
       function clipArtSrc(card) {
-        const bg = card.type === "biotic" ? ["#eaffd8", "#a8efb0"] : ["#e6f8ff", "#acdfff"];
+        // Keep the artwork frame neutral so it cannot reveal the answer.
+        const bg = ["#fffdf6", "#eee8da"];
         const art = artTemplates[card.art] || artTemplates.water;
         const svg = `
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
